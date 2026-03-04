@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/inboxFragment">
+
+    <fragment
+        android:id="@+id/inboxFragment"
+        android:name="com.smartvoicemail.ui.inbox.InboxFragment"
+        android:label="Inbox" />
+
+    <fragment
+        android:id="@+id/greetingFragment"
+        android:name="com.smartvoicemail.ui.greeting.GreetingFragment"
+        android:label="Greeting" />
+
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="com.smartvoicemail.ui.settings.SettingsFragment"
+        android:label="Settings" />
+
+</navigation>

@@ -1,0 +1,16 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Voicemail/phone icon centered in adaptive icon safe zone -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,34c-2.76,0 -5,2.24 -5,5v10c0,2.76 2.24,5 5,5s5,-2.24 5,-5V39C59,36.24 56.76,34 54,34z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M63,49c0,5 -4.03,9 -9,9s-9,-4 -9,-9h-3c0,5.72 4.53,10.38 10,10.95V65h4v-5.05c5.47,-0.57 10,-5.23 10,-10.95H63z" />
+    <path
+        android:fillColor="#B0D4FF"
+        android:pathData="M42,70h24v3H42z" />
+</vector>

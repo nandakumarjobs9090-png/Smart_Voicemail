@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/inboxFragment"
+        android:icon="@drawable/ic_voicemail"
+        android:title="@string/nav_inbox" />
+    <item
+        android:id="@+id/greetingFragment"
+        android:icon="@drawable/ic_mic"
+        android:title="@string/nav_greeting" />
+    <item
+        android:id="@+id/settingsFragment"
+        android:icon="@drawable/ic_settings"
+        android:title="@string/nav_settings" />
+</menu>
