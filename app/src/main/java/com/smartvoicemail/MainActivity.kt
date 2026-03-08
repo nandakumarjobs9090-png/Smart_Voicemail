@@ -14,6 +14,7 @@ import androidx.core.app.ActivityCompat
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.smartvoicemail.databinding.ActivityMainBinding
+import com.smartvoicemail.ui.dialer.DialerActivity
 
 class MainActivity : AppCompatActivity() {
 
@@ -44,6 +45,7 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setupNavigation()
+        setupDialerFab()
         requestPermissions()
     }
 
@@ -52,6 +54,12 @@ class MainActivity : AppCompatActivity() {
             .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         val navController = navHostFragment.navController
         binding.bottomNavigation.setupWithNavController(navController)
+    }
+
+    private fun setupDialerFab() {
+        binding.fabDialer.setOnClickListener {
+            startActivity(Intent(this, DialerActivity::class.java))
+        }
     }
 
     private fun requestPermissions() {

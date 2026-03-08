@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/background">
+
+    <!-- Top Bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="16dp"
+        android:background="@color/primary">
+
+        <ImageButton
+            android:id="@+id/btnBack"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/ic_back"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Back"
+            app:tint="@android:color/white" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Dialer"
+            android:textSize="20sp"
+            android:textColor="@android:color/white"
+            android:textStyle="bold"
+            android:layout_marginStart="12dp" />
+    </LinearLayout>
+
+    <!-- Number Display -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="24dp"
+        android:paddingEnd="8dp"
+        android:paddingTop="24dp"
+        android:paddingBottom="24dp">
+
+        <TextView
+            android:id="@+id/numberDisplay"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Enter number"
+            android:textSize="32sp"
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/text_secondary"
+            android:maxLines="1"
+            android:gravity="center"
+            android:fontFamily="sans-serif-light" />
+
+        <ImageButton
+            android:id="@+id/btnDelete"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/ic_backspace"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Delete"
+            app:tint="@color/text_secondary"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <!-- Contact Name Display -->
+    <TextView
+        android:id="@+id/contactName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textSize="16sp"
+        android:textColor="@color/primary"
+        android:paddingBottom="16dp"
+        android:visibility="gone" />
+
+    <!-- Spacer to push dial pad down -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <!-- Dial Pad -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="32dp"
+        android:paddingEnd="32dp"
+        android:paddingBottom="8dp">
+
+        <!-- Row 1: 1 2 3 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginBottom="8dp">
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="64dp"
+                android:layout_weight="1"
+                android:layout_margin="4dp">
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn1"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:text="1"
+                    android:textSize="24sp"
+                    style="@style/Widget.Material3.Button.TonalButton"
+                    app:cornerRadius="16dp" />
+            </FrameLayout>
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="64dp"
+                android:layout_weight="1"
+                android:layout_margin="4dp">
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn2"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:text="2"
+                    android:textSize="24sp"
+                    style="@style/Widget.Material3.Button.TonalButton"
+                    app:cornerRadius="16dp" />
+            </FrameLayout>
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="64dp"
+                android:layout_weight="1"
+                android:layout_margin="4dp">
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn3"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:text="3"
+                    android:textSize="24sp"
+                    style="@style/Widget.Material3.Button.TonalButton"
+                    app:cornerRadius="16dp" />
+            </FrameLayout>
+        </LinearLayout>
+
+        <!-- Row 2: 4 5 6 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginBottom="8dp">
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="64dp"
+                android:layout_weight="1"
+                android:layout_margin="4dp">
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn4"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:text="4"
+                    android:textSize="24sp"
+                    style="@style/Widget.Material3.Button.TonalButton"
+                    app:cornerRadius="16dp" />
+            </FrameLayout>
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="64dp"
+                android:layout_weight="1"
+                android:layout_margin="4dp">
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn5"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:text="5"
+                    android:textSize="24sp"
+                    style="@style/Widget.Material3.Button.TonalButton"
+                    app:cornerRadius="16dp" />
+            </FrameLayout>
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="64dp"
+                android:layout_weight="1"
+                android:layout_margin="4dp">
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn6"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:text="6"
+                    android:textSize="24sp"
+                    style="@style/Widget.Material3.Button.TonalButton"
+                    app:cornerRadius="16dp" />
+            </FrameLayout>
+        </LinearLayout>
+
+        <!-- Row 3: 7 8 9 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginBottom="8dp">
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="64dp"
+                android:layout_weight="1"
+                android:layout_margin="4dp">
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn7"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:text="7"
+                    android:textSize="24sp"
+                    style="@style/Widget.Material3.Button.TonalButton"
+                    app:cornerRadius="16dp" />
+            </FrameLayout>
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="64dp"
+                android:layout_weight="1"
+                android:layout_margin="4dp">
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn8"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:text="8"
+                    android:textSize="24sp"
+                    style="@style/Widget.Material3.Button.TonalButton"
+                    app:cornerRadius="16dp" />
+            </FrameLayout>
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="64dp"
+                android:layout_weight="1"
+                android:layout_margin="4dp">
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn9"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:text="9"
+                    android:textSize="24sp"
+                    style="@style/Widget.Material3.Button.TonalButton"
+                    app:cornerRadius="16dp" />
+            </FrameLayout>
+        </LinearLayout>
+
+        <!-- Row 4: * 0 # -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginBottom="16dp">
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="64dp"
+                android:layout_weight="1"
+                android:layout_margin="4dp">
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnStar"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:text="✱"
+                    android:textSize="24sp"
+                    style="@style/Widget.Material3.Button.TonalButton"
+                    app:cornerRadius="16dp" />
+            </FrameLayout>
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="64dp"
+                android:layout_weight="1"
+                android:layout_margin="4dp">
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn0"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:text="0"
+                    android:textSize="24sp"
+                    style="@style/Widget.Material3.Button.TonalButton"
+                    app:cornerRadius="16dp" />
+            </FrameLayout>
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="64dp"
+                android:layout_weight="1"
+                android:layout_margin="4dp">
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnHash"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:text="#"
+                    android:textSize="24sp"
+                    style="@style/Widget.Material3.Button.TonalButton"
+                    app:cornerRadius="16dp" />
+            </FrameLayout>
+        </LinearLayout>
+
+        <!-- Call Button -->
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/btnCall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_call"
+            app:backgroundTint="#4CAF50"
+            app:tint="@android:color/white"
+            app:fabSize="normal"
+            android:contentDescription="Call"
+            android:layout_marginBottom="24dp" />
+    </LinearLayout>
+
+</LinearLayout>
