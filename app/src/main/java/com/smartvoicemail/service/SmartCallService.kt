@@ -1,7 +1,9 @@
 package com.smartvoicemail.service
 
+import android.content.Context
 import android.content.Intent
 import android.media.AudioAttributes
+import android.media.AudioManager
 import android.media.MediaPlayer
 import android.media.MediaRecorder
 import android.os.Build
@@ -39,6 +41,7 @@ class SmartCallService : InCallService() {
     private var userAnswered = false
     private val handler = Handler(Looper.getMainLooper())
     private var maxRecordingRunnable: Runnable? = null
+    private var previousAudioMode = AudioManager.MODE_NORMAL
 
     private val callCallback = object : Call.Callback() {
         override fun onStateChanged(call: Call, state: Int) {
@@ -111,16 +114,60 @@ class SmartCallService : InCallService() {
         isVoicemailActive = true
         call.answer(VideoProfile.STATE_AUDIO_ONLY)
 
-        // Wait for call to fully connect before playing greeting
+        // Wait for call to fully connect before setting up audio
         handler.postDelayed({
-            playGreeting {
-                playBeep {
-                    startRecording()
+            // Set audio mode to IN_COMMUNICATION so that audio with
+            // USAGE_VOICE_COMMUNICATION is routed into the call stream
+            // (injected into the uplink) rather than played through the speaker
+            setupCallAudioMode()
+
+            // Small delay for audio routing to take effect
+            handler.postDelayed({
+                playGreeting {
+                    playBeep {
+                        startRecording()
+                    }
                 }
-            }
+            }, 300)
         }, 1500)
     }
 
+    /**
+     * Configures AudioManager for voice communication mode.
+     * This ensures that audio played with USAGE_VOICE_COMMUNICATION
+     * is injected into the call's uplink (sent to the caller)
+     * without playing through the device speaker.
+     */
+    private fun setupCallAudioMode() {
+        try {
+            val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+            previousAudioMode = audioManager.mode
+            audioManager.mode = AudioManager.MODE_IN_COMMUNICATION
+            Log.d(TAG, "AudioManager set to MODE_IN_COMMUNICATION for audio injection")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error setting audio mode", e)
+        }
+    }
+
+    /**
+     * Restores the AudioManager mode to its previous state.
+     */
+    private fun restoreAudioMode() {
+        try {
+            val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+            audioManager.mode = previousAudioMode
+            Log.d(TAG, "AudioManager mode restored")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error restoring audio mode", e)
+        }
+    }
+
+    /**
+     * Plays the greeting audio.
+     * Uses USAGE_VOICE_COMMUNICATION + CONTENT_TYPE_SPEECH so the audio
+     * is injected into the telephony uplink and heard by the CALLER only.
+     * The device user does NOT hear the greeting through their speaker.
+     */
     private fun playGreeting(onComplete: () -> Unit) {
         val greetingFile = StorageHelper.getGreetingFile(this)
         if (!greetingFile.exists()) {
@@ -131,6 +178,8 @@ class SmartCallService : InCallService() {
 
         try {
             mediaPlayer = MediaPlayer().apply {
+                // USAGE_VOICE_COMMUNICATION routes the audio into the call stream
+                // The caller hears this; the device user does not
                 setAudioAttributes(
                     AudioAttributes.Builder()
                         .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
@@ -139,6 +188,7 @@ class SmartCallService : InCallService() {
                 )
                 setDataSource(greetingFile.absolutePath)
                 prepare()
+                setVolume(1.0f, 1.0f)
                 setOnCompletionListener {
                     it.release()
                     mediaPlayer = null
@@ -146,6 +196,7 @@ class SmartCallService : InCallService() {
                 }
                 start()
             }
+            Log.d(TAG, "Greeting playing → injected into call uplink for caller")
         } catch (e: Exception) {
             Log.e(TAG, "Error playing greeting", e)
             mediaPlayer?.release()
@@ -155,64 +206,103 @@ class SmartCallService : InCallService() {
     }
 
     private fun playBeep(onComplete: () -> Unit) {
+        // BeepGenerator also uses USAGE_VOICE_COMMUNICATION,
+        // so the beep is injected into the call stream for the caller
         BeepGenerator.playBeep(onComplete)
     }
 
+    /**
+     * Records the CALLER's voice from the call audio stream.
+     *
+     * Tries audio sources in order of preference:
+     * 1. VOICE_DOWNLINK  → captures only the remote party (caller's voice)
+     * 2. VOICE_CALL      → captures both sides of the call
+     * 3. VOICE_COMMUNICATION → mic with echo cancellation (fallback)
+     *
+     * VOICE_DOWNLINK is ideal because it records ONLY what the caller says,
+     * without any audio from our side. Some devices restrict this to system
+     * apps, so we fall back gracefully.
+     */
     private fun startRecording() {
         if (currentCall == null || currentCall?.state == Call.STATE_DISCONNECTED) return
 
         val file = StorageHelper.createVoicemailFile(this)
         recordingFile = file
 
-        try {
-            mediaRecorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                MediaRecorder(this)
-            } else {
-                @Suppress("DEPRECATION")
-                MediaRecorder()
-            }
+        // Audio sources in order: caller-only → both sides → mic fallback
+        val audioSources = listOf(
+            MediaRecorder.AudioSource.VOICE_DOWNLINK,      // Caller's voice only (ideal)
+            MediaRecorder.AudioSource.VOICE_CALL,          // Both sides of the call
+            MediaRecorder.AudioSource.VOICE_COMMUNICATION, // Mic with echo cancellation
+            MediaRecorder.AudioSource.MIC                  // Raw mic (last resort)
+        )
 
-            mediaRecorder?.apply {
-                setAudioSource(MediaRecorder.AudioSource.VOICE_COMMUNICATION)
-                setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
-                setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
-                setAudioSamplingRate(44100)
-                setAudioEncodingBitRate(128000)
-                setOutputFile(file.absolutePath)
-
-                val maxTimeMs = PrefsManager.getMaxRecordingTime(this@SmartCallService) * 1000
-                setMaxDuration(maxTimeMs)
-
-                setOnInfoListener { _, what, _ ->
-                    if (what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_DURATION_REACHED) {
-                        Log.d(TAG, "Max recording duration reached")
-                        handler.post {
-                            stopVoicemailProcess()
-                            currentCall?.disconnect()
-                        }
-                    }
+        for (source in audioSources) {
+            try {
+                val recorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    MediaRecorder(this)
+                } else {
+                    @Suppress("DEPRECATION")
+                    MediaRecorder()
                 }
 
-                prepare()
-                start()
+                val maxTimeMs = PrefsManager.getMaxRecordingTime(this) * 1000
+
+                recorder.apply {
+                    setAudioSource(source)
+                    setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+                    setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+                    setAudioSamplingRate(44100)
+                    setAudioEncodingBitRate(128000)
+                    setOutputFile(file.absolutePath)
+                    setMaxDuration(maxTimeMs)
+
+                    setOnInfoListener { _, what, _ ->
+                        if (what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_DURATION_REACHED) {
+                            Log.d(TAG, "Max recording duration reached")
+                            handler.post {
+                                stopVoicemailProcess()
+                                currentCall?.disconnect()
+                            }
+                        }
+                    }
+
+                    prepare()
+                    start()
+                }
+
+                mediaRecorder = recorder
+                isRecording = true
+
+                val sourceName = when (source) {
+                    MediaRecorder.AudioSource.VOICE_DOWNLINK -> "VOICE_DOWNLINK (caller only)"
+                    MediaRecorder.AudioSource.VOICE_CALL -> "VOICE_CALL (both sides)"
+                    MediaRecorder.AudioSource.VOICE_COMMUNICATION -> "VOICE_COMMUNICATION (mic+AEC)"
+                    MediaRecorder.AudioSource.MIC -> "MIC (raw)"
+                    else -> "unknown"
+                }
+                Log.d(TAG, "Recording caller with source: $sourceName → ${file.absolutePath}")
+
+                // Safety timeout to end recording and hang up
+                val maxTime = PrefsManager.getMaxRecordingTime(this) * 1000L + 2000L
+                maxRecordingRunnable = Runnable {
+                    stopVoicemailProcess()
+                    currentCall?.disconnect()
+                }
+                handler.postDelayed(maxRecordingRunnable!!, maxTime)
+
+                return // Success — stop trying other sources
+
+            } catch (e: Exception) {
+                Log.w(TAG, "Audio source $source not available on this device, trying next", e)
+                continue
             }
-
-            isRecording = true
-            Log.d(TAG, "Recording started: ${file.absolutePath}")
-
-            // Safety timeout
-            val maxTime = PrefsManager.getMaxRecordingTime(this) * 1000L + 2000L
-            maxRecordingRunnable = Runnable {
-                stopVoicemailProcess()
-                currentCall?.disconnect()
-            }
-            handler.postDelayed(maxRecordingRunnable!!, maxTime)
-
-        } catch (e: Exception) {
-            Log.e(TAG, "Error starting recording", e)
-            isRecording = false
-            currentCall?.disconnect()
         }
+
+        // All audio sources failed
+        Log.e(TAG, "Cannot record voicemail — no audio source available")
+        isRecording = false
+        currentCall?.disconnect()
     }
 
     private fun stopVoicemailProcess() {
@@ -241,6 +331,10 @@ class SmartCallService : InCallService() {
                 }
             }
         }
+
+        // Restore audio mode to what it was before voicemail
+        restoreAudioMode()
+
         isVoicemailActive = false
     }
 
